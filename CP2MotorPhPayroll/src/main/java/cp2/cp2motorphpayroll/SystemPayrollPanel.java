@@ -279,7 +279,7 @@ public class SystemPayrollPanel {
         });
 
  
-        // EVENT - auto-fill name when emp# field loses focus
+        // EVENT - autofill name when emp# field loses focus
         empNumField.addFocusListener(new FocusAdapter() {
             public void focusLost(FocusEvent e) {
                 String num = empNumField.getText().trim();

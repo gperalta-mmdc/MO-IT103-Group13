@@ -7,16 +7,16 @@ import java.util.*;
 /**
  * =========================================================
  * Employee CSV column layout (0-based index):
- *  0  = Employee # (key)    1  = Last Name
- *  2  = First Name          3  = Birthday
- *  4  = Phone Number        5  = SSS #
- *  6  = PhilHealth #        7  = TIN #
- *  8  = Pag-IBIG #          9  = Status
- *  10 = Position            11 = Basic Salary
- *  12 = Rice Subsidy        13 = Phone Allowance
- *  14 = Clothing Allowance  15 = Gross Semi-monthly Rate
- *  16 = Hourly Rate         17 = Immediate Supervisor
- *  18 = Address
+ * 0  = Employee # (key)    1  = Last Name
+ * 2  = First Name          3  = Birthday
+ * 4  = Phone Number        5  = SSS #
+ * 6  = PhilHealth #        7  = TIN #
+ * 8  = Pag-IBIG #          9  = Status
+ * 10 = Position            11 = Basic Salary
+ * 12 = Rice Subsidy        13 = Phone Allowance
+ * 14 = Clothing Allowance  15 = Gross Semi-monthly Rate
+ * 16 = Hourly Rate         17 = Immediate Supervisor
+ * 18 = Address
  * =========================================================
  */
 public class DataProcessing {
@@ -43,7 +43,7 @@ public class DataProcessing {
             count = 0;
             while ((line = br.readLine()) != null) {
                 line = line.trim();
-                line +="," + count;
+                line += "," + count;
                 System.out.println(line);
                 if (line.isEmpty()) continue;
                 String[] data = line.split(",", -1);
@@ -51,7 +51,7 @@ public class DataProcessing {
                 employeeMap.put(data[0].trim(), data); //the key ID is
                 count++;
             }
-            System.out.println("[DataProcessing] Employees loaded: " + count);
+            System.out.println("[DataProcessing] Employees loaded: ");
 
         } catch (IOException e) {
             SystemGUIHelper.showWarning(null,
@@ -98,34 +98,22 @@ public class DataProcessing {
     }
 
     static String[] readNewEmployeeField(JTextField[] fields) {
-        int size = (fields.length);
-        System.out.println(size);
         String[] content = new String[18];
-        for (int i = 0; i < size; i++) {
-            if(i==4){
+        for (int i = 0; i < 11; i++) {
+            JTextField field = fields[i];
+            if (field == null) {
                 continue;
             }
-            if(i>4){
-                JTextField field = fields[i];
-                content[i] = field.getText();
-                System.out.println("Index " + i + ": " + content[i]);
-            }
-            if(i>10){
-                JTextField field = fields[i];
+            if (i > 9) {
                 content[16] = field.getText();
-                System.out.println("Index " + i + ": " + content[i]);
-                break;
-                //known bug [1, 3, 2, 4, null, 5, 6, 7, 8, 10, 9, 11, null, null, null, null, 11, null]
-                //hr gets copied to 11th field
             }
-            JTextField field = fields[i];
             content[i] = field.getText();
             System.out.println("Index " + i + ": " + content[i]);
         }
         return content;
     }
 
-    static String[] addEmployeeToRecords(JTextField[] fields){
+    static String[] addEmployeeToRecords(JTextField[] fields) {
         String[] data = readNewEmployeeField(fields);
         //bug where if you add one entry and another it slips into the top of the latest entered array
         EntryPoint.employeeMap.put(data[0].trim(), data); //the key ID is
@@ -137,7 +125,7 @@ public class DataProcessing {
     static void saveEmployeeToCSV(String[] data) {
         try (FileWriter writer = new FileWriter(filePath, true)) {
             // Join array elements with commas
-            String line = String.join(",", data);
+            String line = String.join(",", data).replace("null", " ");
             // Append newline at the end
             writer.write(line + System.lineSeparator());
         } catch (IOException e) {
@@ -145,45 +133,98 @@ public class DataProcessing {
         }
     }
 
-    //Great for validating the length of an ID
-    static boolean validLength (String content, int limit){
 
-        return false;
+    //Data validation methods
+    static boolean onlyLetters(JTextField content) {
+        return content != null && processJTextField(content).matches("[a-zA-Z]+");
     }
 
-    static boolean onlyLetters (JTextField content){
-        if (content != null && content.getText().matches("[a-zA-Z]+")){
-            return true;
-        }
-        return false;
-    }
-
-    static boolean onlyIntegers (String content, int limit){
-        if (content.length()!=limit){
+    static boolean onlyIntegers(JTextField contentField, int limit) {
+        String content = processJTextField(contentField);
+        if (content.length() != limit && limit != 0) {
             return false;
         }
-        try{
+        if (!content.matches("\\d+")) {
+            return false;
+        }
+        return true;
+    }
+
+    static boolean onlyIntegers(String content, int limit) {
+        if (content.length() != limit && limit != 0) {
+            return false;
+        }
+        try {
             int parsedInteger = Integer.parseInt(content);
             return true;
-        }
-        catch (NumberFormatException e){
+        } catch (NumberFormatException e) {
             return false;
         }
     }
 
-    static boolean onlyIntegers (String content){
-        try{
+    static boolean onlyIntegers(String content) {
+        try {
             int parsedInteger = Integer.parseInt(content);
             return true;
-        }
-        catch (NumberFormatException e){
+        } catch (NumberFormatException e) {
             return false;
         }
     }
 
 
-    static String removeSpaces(String input){
-        input = input.replace(" ", "");
-        return input;
+    //Checks user input based on format defined by other methods (eg. xxx-xxx-xxx)
+    //It splits input and format based on the format and checks if the input is an integer and of equal length to the template
+    static boolean genericValidator(JTextField field, String format, String separator) {
+        String input = processJTextField(field);
+        String[] chunkedFormat = format.split(separator, -1);
+        String[] chunkedInput = input.split(separator, -1);
+
+        if(chunkedInput.length!= chunkedFormat.length){
+            return false;
+        }
+
+        for (int i = 0; i < chunkedFormat.length; i++) {
+            System.out.println("-----");
+            System.out.println(chunkedInput[i]);
+            System.out.println(chunkedFormat[i]);
+            if (!(onlyIntegers(chunkedInput[i], chunkedFormat[i].length()))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
+    // For SSS numbers: xx-xxxxxxx-x
+    static boolean validateSSS(JTextField field) {
+        return genericValidator(field, "xx-xxxxxxx-x", "-");
+    }
+
+    // For TIN numbers: xxxx-xxxx-xxxx
+    static boolean validateTIN(JTextField field) {
+        return genericValidator(field, "xxx-xxx-xxx-xxx", "-");
+    }
+
+    // FOr Pag-IBIG Numbers xxxx-xxxx-xxxx
+    static boolean validatePagIbig(JTextField field) {
+        return onlyIntegers(field, 12);
+    }
+
+    // For PhilHealth numbers: 12 digits, no delimiter
+    static boolean validatePhilHealth(JTextField field) {
+        return onlyIntegers(field, 12);
+    }
+
+    // For dates in MM/DD/YYYY format
+    static boolean validateDate(JTextField dateField) {
+        //call generic validator, if false return false. if it's true
+        //check if dates and months are above the limit using a java library
+        //if im gonna do that validateDate probably shouldn't use genericValidator()
+        //but i had a cool eureka moment so ill use it anyways
+        return genericValidator(dateField, "xx/xx/xxxx", "/");
+    }
+
+    static String processJTextField(JTextField field) {
+        return field.getText();
     }
 }
