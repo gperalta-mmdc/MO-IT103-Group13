@@ -127,4 +127,29 @@ public class SystemGUIHelper {
             popup.dispose();
         }
     }
+    
+    // Creates a styled text field with gray placeholder hint text.
+    public static JTextField makeFieldWithHint(int cols, String hint) {
+        JTextField f = new JTextField(cols) {
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                super.paintComponent(g);
+                if (getText().isEmpty() && !isFocusOwner()) {
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setColor(Color.LIGHT_GRAY);
+                    g2.setFont(getFont().deriveFont(Font.ITALIC));
+                    Insets ins = getInsets();
+                    g2.drawString(hint, ins.left + 2,
+                        getHeight() / 2 + getFont().getSize() / 2 - 2);
+                    g2.dispose();
+                }
+            }
+        };
+        f.setFont(FONT_LABEL);
+        f.setBackground(COLOR_FIELD_BG);
+        f.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(COLOR_BORDER),
+            BorderFactory.createEmptyBorder(4, 8, 4, 8)));
+        return f;
+    }
 }
