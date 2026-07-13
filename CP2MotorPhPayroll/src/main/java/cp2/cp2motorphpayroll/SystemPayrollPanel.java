@@ -161,14 +161,6 @@ public class SystemPayrollPanel {
         summaryBtn.setPreferredSize(new Dimension(180, 32));
         controls.add(summaryBtn, c);
         
-        c.gridy = 1; c.gridx = 6; c.gridwidth = 2;
-
-        JButton gensumBtn = SystemGUIHelper.makeButton(
-                "Generate Payroll Summary",
-                new Color(30, 80, 160));
-        gensumBtn.setPreferredSize(new Dimension(200, 32));
-        controls.add(gensumBtn, c);
-        
         
 
         // TABLE
@@ -371,22 +363,8 @@ public class SystemPayrollPanel {
                                 + selectedMonth + " " + selectedYear + ".");
             }
         });
-    
-    
-     // EVENT - Generate Summary button
-        gensumBtn.addActionListener(e -> {
-            if (EntryPoint.employeeMap.isEmpty()) {
-                SystemGUIHelper.showError(frame,
-                        "Employee data is not loaded.\n"
-                                + "Please verify the CSV file exists.");
-                return;
-            }
-            int selectedYear = (int) yearSpinner.getValue();
-            
-            genPayrollSummary(selectedYear);
-            });
     }
-    
+
     // ════════════════════════════════════════════════════════════════════
     //  PAYROLL HELPERS
     // ════════════════════════════════════════════════════════════════════
@@ -475,91 +453,6 @@ public class SystemPayrollPanel {
                     + s + "\" — defaulting to 0.");
             return 0;
         }
-    }
-    
-    private static void genPayrollSummary(int selectedYear){
-   
-        int empAmt = EntryPoint.employeeMap.keySet().size();
-        double totalGross = 0;
-        double totalDeductions = 0;
-        double totalNet = 0;
-        
-        
-        java.util.List<String> keys = new java.util.ArrayList<>(EntryPoint.employeeMap.keySet());
-            java.util.Collections.sort(keys);
-            for (String empNum : keys) {
-                for (int m = 1; m <= 12; m++) {
-                    String yearMonth = selectedYear + "-" + String.format("%02d", m);
-                    System.out.println(yearMonth);
-                    
-                    String[] data = EntryPoint.employeeMap.get(empNum);
-                    if (data == null) return;
-                    double hourlyRate  = parseDouble(DataProcessing.safeGet(data, 16));
-
-                    if (hourlyRate == 0)
-                    System.out.println("[Warning] Employee " + empNum
-                        + " has a missing or invalid Hourly Rate in the CSV.");
-
-                    // Compute hours for both cutoffs
-                    double hours1st = computeHoursWorked(empNum, yearMonth, 1);
-                    double hours2nd = computeHoursWorked(empNum, yearMonth, 2);
-                  
-                    // Skip this month entirely if no attendance at all
-                    if (hours1st == 0 && hours2nd == 0) continue;
-
-                    // Gross pay - modular method, array-based parameters
-                    double gross1st = computeGrossPay(new double[]{ hours1st, hourlyRate });
-                    double gross2nd = computeGrossPay(new double[]{ hours2nd, hourlyRate });
-                 
-                    // Combined monthly gross - this is the basis for deductions
-                    double totalMonthlyGross = gross1st + gross2nd;
-                    totalGross = totalGross + totalMonthlyGross;
-                  
-                    // Deductions - each computed independently, then summed 
-                    double[] deductions = computeDeductions(new double[]{ totalMonthlyGross });
-                    double sss         = deductions[0];
-                    double philHealth  = deductions[1];
-                    double pagIbig     = deductions[2];
-                    double tax         = deductions[3];
-                    double totalDed    = deductions[4]; 
-                    totalDeductions = totalDed + totalDeductions; 
-                    
-                    // Net pay - modular method 
-                    double netPay2nd = computeNetPay(new double[]{ gross2nd, totalDed });
-                    if (netPay2nd < 0) netPay2nd = 0; 
-                    
-                    totalNet = netPay2nd + totalNet;
-
-                    String[] ym = yearMonth.split("-");
-                    int ymYear  = Integer.parseInt(ym[0]);
-                    int ymMonth = Integer.parseInt(ym[1]);
-
-                    String monthDisplay = java.time.Month.of(ymMonth)
-                            .getDisplayName(java.time.format.TextStyle.FULL, java.util.Locale.ENGLISH)
-                            + " " + ym[0];
-
-
-                    // Get the actual last day of this month (handles leap years correctly)
-                    int lastDay = java.time.YearMonth.of(ymYear, ymMonth).lengthOfMonth();
-                    String monthEnd = "2nd (16–" + lastDay + ")";
-
-                                }
-                            }
-
-
-        String display = "===== Payroll Summary =====\n"
-                    + "Number of Emplyoees: " + empAmt + "\n"
-                    + "Total Gross Pay: " + String.format("%.2f", totalGross) + "\n"
-                    + "Total Deductions: " + String.format("%.2f", totalDeductions) + "\n"
-                    + "Average Net Pay: " + String.format("%.2f",totalNet/empAmt);
-        if (totalNet != 0){
-            JOptionPane.showMessageDialog(null, display,
-            "MOTORPH Payroll Summmary",
-            JOptionPane.INFORMATION_MESSAGE);
-            }
-        else 
-            SystemGUIHelper.showWarning(frame,
-                "No attendance records found for " + selectedYear + ".");
     }
 
     // ════════════════════════════════════════════════════════════════════
