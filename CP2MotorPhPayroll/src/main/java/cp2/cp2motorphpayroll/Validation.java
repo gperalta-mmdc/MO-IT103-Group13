@@ -38,23 +38,6 @@ public class Validation {
         return false;
     }
 
-
-    //Data validation methods
-    static boolean onlyLetters(JTextField content) {
-        return content != null && processJTextField(content).matches("[a-zA-Z]+");
-    }
-
-    static boolean onlyIntegers(JTextField contentField, int limit) {
-        String content = processJTextField(contentField);
-        if (content.length() != limit && limit != 0) {
-            return false;
-        }
-        if (!content.matches("\\d+")) {
-            return false;
-        }
-        return true;
-    }
-
     static boolean onlyIntegers(String content, int limit) {
         if (content.length() != limit && limit != 0) {
             return false;
@@ -64,9 +47,7 @@ public class Validation {
         }
         return true;
     }
-
-    //Checks user input based on format defined by other methods (eg. xxx-xxx-xxx)
-    //It splits input and format based on the format and checks if the input is an integer and of equal length to the template
+    
     static boolean genericValidator(String input, String format, String separator) {
         String[] chunkedFormat = format.split(separator, -1);
         String[] chunkedInput = input.split(separator, -1);
@@ -89,19 +70,20 @@ public class Validation {
 
     // For SSS numbers: xx-xxxxxxx-x
     static boolean validateSSS(String input) {
-        return genericValidator(input, "xx-xxxxxxx-x", "-");
+        if (input == null || input.isEmpty()) return false;
+        return input.matches("\\d{2}-\\d{7}-\\d{1}");
     }
+
 
     // For TIN numbers: xxxx-xxxx-xxxx
-    static boolean validateTIN(String input) {
-        return genericValidator(input, "xxx-xxx-xxx-xxx", "-");
+   static boolean validateTIN(String input) {
+        if (input == null || input.isEmpty()) return false;
+        return input.matches("\\d{3}-\\d{3}-\\d{3}-\\d{3}");
     }
-
     // FOr Pag-IBIG Numbers xxxx-xxxx-xxxx
     static boolean validatePagIbig(String input) {
         return onlyIntegers(input, 12);
     }
-
     // For PhilHealth numbers: 12 digits, no delimiter
     static boolean validatePhilHealth(String input) {
         return onlyIntegers(input, 12);
@@ -115,4 +97,15 @@ public class Validation {
     static String processJTextField(JTextField field) {
         return field.getText();
     }
+    static boolean validatePhoneNumber(String input) {
+        if (input == null || input.isEmpty()) return false;
+        return input.matches("\\d{3}-\\d{3}-\\d{3}");
+    }
+    static boolean validateDouble(String input) {
+        if (input == null || input.isEmpty()) return false;
+        // Matches optional digits before dot, dot, up to 2 decimal places
+        // Also accepts whole numbers with no decimal point
+        return input.matches("\\d+(\\.\\d{1,2})?");
+    }
+
 }
