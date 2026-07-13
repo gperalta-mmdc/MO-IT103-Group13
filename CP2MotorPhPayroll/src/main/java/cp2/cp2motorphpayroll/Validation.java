@@ -116,9 +116,3 @@ public class Validation {
         return field.getText();
     }
 }
-
-
-
-
-
-
