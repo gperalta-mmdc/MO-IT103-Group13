@@ -1,5 +1,5 @@
 Computer Programming 2 : <br>
-Milestone 2<br>
+Terminal Assessment<br>
 <br>
 Group 13 : <br>
 Giannros Peralta <br>
@@ -8,6 +8,15 @@ Ellijah Gabriel Tajo <br>
 Jorge Castro <br>
 Juan Gabriel Paderes<br>
 <br>
+----------------------------------------------<br>
+Class Descriptions<br>
+DataProcessing - CSV data / file management<br>
+EntryPoint - Main Class / File handling <br>
+SystemDataOperations - CRUD Operations <br> 
+SystemEmployeePanel - Employee panel functions and GUI <br>
+SystemGuiHelper - Reusable GUI functions <br>
+SystemLogInPanel - Log in panel functions and GUI <br>
+SystemPayrollPanel - Payroll logic, computations and GUI <br>
 ----------------------------------------------<br>
 PasswordValidator:<br>
 Login Credentials<br>
